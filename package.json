@@ -1,0 +1,53 @@
+{
+  "name": "performance-widgets",
+  "productName": "Performance Widgets",
+  "version": "1.0.0",
+  "description": "Surveillez les performances de votre PC en temps réel avec des widgets, un thème personnalisable et une alerte sonore de surcharge activable/désactivable.",
+  "main": "main.js",
+  "author": "notJaizu",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "dependencies": {
+    "systeminformation": "^5.23.0"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.notjaizu.performancewidgets",
+    "mac": {
+      "category": "Utilities",
+      "target": ["dmg"]
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "System",
+      "desktop": {
+        "Name": "Performance Widgets",
+        "GenericName": "Moniteur système",
+        "Comment": "Surveillance des performances PC en temps réel avec widgets, thème personnalisable et alertes sonores de surcharge",
+        "Categories": "System;Monitor;Utility;"
+      }
+    },
+    "win": {
+      "target": ["nsis"]
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**",
+      "assets/**"
+    ],
+    "directories": {
+      "buildResources": "assets",
+      "output": "dist"
+    },
+    "publish": null
+  }
+}

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Performance Widgets — Moniteur PC en temps réel</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="shell-header">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div>
+        <div class="brand-name">Performance Widgets</div>
+        <div class="brand-sub">Moniteur PC en temps réel</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <span id="clock" class="clock">--:--:--</span>
+      <button id="settingsBtn" class="btn-icon" title="Paramètres">⚙️</button>
+    </div>
+  </header>
+
+  <aside id="settingsPanel" class="settings-panel">
+    <div class="settings-header">
+      <h2>Paramètres</h2>
+      <button id="closeSettings" class="btn-close">✕</button>
+    </div>
+    <div class="settings-body">
+      <div class="setting-group">
+        <label class="setting-label">Thème</label>
+        <select id="themeSelect" class="setting-select">
+          <option value="dark">Sombre</option>
+          <option value="light">Clair</option>
+          <option value="system">Système</option>
+        </select>
+      </div>
+
+      <div class="setting-group">
+        <label class="setting-label">Couleur d'accent</label>
+        <input type="color" id="accentColor" class="setting-color" />
+      </div>
+
+      <div class="setting-group">
+        <label class="setting-label">Alerte sonore en cas de surcharge</label>
+        <div class="toggle-row">
+          <label class="switch">
+            <input type="checkbox" id="soundToggle" />
+            <span class="switch-slider"></span>
+          </label>
+          <span id="soundStatus" class="status-text">Désactivé</span>
+        </div>
+        <p class="setting-note">Joue un bip d'alerte lorsque le processeur ou la mémoire dépasse le seuil pendant plusieurs secondes.</p>
+      </div>
+
+      <div class="setting-group">
+        <label class="setting-label">Seuil de surcharge — Processeur (%)</label>
+        <input type="range" id="cpuThreshold" min="50" max="100" value="90" class="setting-range" />
+        <span id="cpuThresholdVal" class="range-val">90%</span>
+      </div>
+
+      <div class="setting-group">
+        <label class="setting-label">Seuil de surcharge — Mémoire (%)</label>
+        <input type="range" id="memThreshold" min="50" max="100" value="90" class="setting-range" />
+        <span id="memThresholdVal" class="range-val">90%</span>
+      </div>
+
+      <div class="setting-group">
+        <label class="setting-label">Intervalle de rafraîchissement</label>
+        <select id="refreshSelect" class="setting-select">
+          <option value="1000">1 seconde</option>
+          <option value="2000" selected>2 secondes</option>
+          <option value="5000">5 secondes</option>
+        </select>
+      </div>
+
+      <div class="setting-group actions">
+        <button id="resetSettings" class="btn-reset">Réinitialiser les paramètres</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="shell">
+    <!-- Bandeau surcharge -->
+    <div id="overloadBanner" class="overload-banner hidden" role="alert">
+      <strong>⚠️ Surcharge détectée</strong> — Le PC dépasse les seuils définis.
+      <span id="overloadDetail"></span>
+    </div>
+
+    <div class="toolbar">
+      <div class="chip" id="chipCpu">CPU <span>--%</span></div>
+      <div class="chip" id="chipMem">RAM <span>--%</span></div>
+      <div class="chip" id="chipTemp">Temp. <span>--°C</span></div>
+      <div class="chip" id="chipUp">Uptime <span>--</span></div>
+      <div class="chip" id="chipSound" title="Alerte sonore">Son <span id="soundChip">OFF</span></div>
+    </div>
+
+    <div class="grid">
+      <!-- CPU -->
+      <article class="widget widget-cpu">
+        <div class="widget-head">
+          <span class="widget-title">Processeur (CPU)</span>
+          <span class="widget-value" id="valCpu">--%</span>
+        </div>
+        <div class="widget-body">
+          <div class="gauge" id="gaugeCpu" role="gauge" aria-label="Charge CPU"></div>
+          <div class="widget-detail">
+            <div class="detail-row"><span class="detail-label">Cœurs</span><span class="detail-value" id="detCpus">--</span></div>
+            <div class="detail-row"><span class="detail-label">Charge 1 min</span><span class="detail-value" id="detLoad1">--</span></div>
+            <div class="detail-row"><span class="detail-label">Charge 5 min</span><span class="detail-value" id="detLoad5">--</span></div>
+            <div class="detail-row"><span class="detail-label">Charge 15 min</span><span class="detail-value" id="detLoad15">--</span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Mémoire -->
+      <article class="widget widget-mem">
+        <div class="widget-head">
+          <span class="widget-title">Mémoire vive (RAM)</span>
+          <span class="widget-value" id="valMem">--%</span>
+        </div>
+        <div class="widget-body">
+          <div class="gauge" id="gaugeMem" role="gauge" aria-label="Mémoire RAM"></div>
+          <div class="widget-detail">
+            <div class="detail-row"><span class="detail-label">Utilisée</span><span class="detail-value" id="detMemUsed">-- Go</span></div>
+            <div class="detail-row"><span class="detail-label">Totale</span><span class="detail-value" id="detMemTotal">-- Go</span></div>
+            <div class="detail-row"><span class="detail-label">Libre</span><span class="detail-value" id="detMemFree">-- Go</span></div>
+            <div class="detail-row"><span class="detail-label">Disponible</span><span class="detail-value" id="detMemAvailable">-- Go</span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Disque -->
+      <article class="widget widget-disk">
+        <div class="widget-head">
+          <span class="widget-title">Disque</span>
+          <span class="widget-value" id="valDisk">--%</span>
+        </div>
+        <div class="widget-body">
+          <div class="gauge" id="gaugeDisk" role="gauge" aria-label="Disque"></div>
+          <div class="widget-detail">
+            <div class="detail-row"><span class="detail-label">Utilisé</span><span class="detail-value" id="detDiskUsed">-- Go</span></div>
+            <div class="detail-row"><span class="detail-label">Total</span><span class="detail-value" id="detDiskTotal">-- Go</span></div>
+            <div class="detail-row"><span class="detail-label">Libre</span><span class="detail-value" id="detDiskFree">-- Go</span></div>
+            <div class="detail-row"><span class="detail-label">Partition</span><span class="detail-value" id="detDiskMount">/</span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Réseau -->
+      <article class="widget widget-net">
+        <div class="widget-head">
+          <span class="widget-title">Réseau</span>
+          <span class="widget-value" id="valNet">-- Mo/s</span>
+        </div>
+        <div class="widget-body">
+          <div class="gauge mini" id="gaugeNet"></div>
+          <div class="widget-detail">
+            <div class="detail-row"><span class="detail-label">Descente</span><span class="detail-value" id="detNetRx">-- Mo/s</span></div>
+            <div class="detail-row"><span class="detail-label">Montée</span><span class="detail-value" id="detNetTx">-- Mo/s</span></div>
+            <div class="detail-row"><span class="detail-label">Interface</span><span class="detail-value" id="detNetIface">--</span></div>
+            <div class="detail-row"><span class="detail-label">État</span><span class="detail-value" id="detNetState">--</span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Batterie -->
+      <article class="widget widget-battery hidden" id="widgetBattery">
+        <div class="widget-head">
+          <span class="widget-title">Batterie</span>
+          <span class="widget-value" id="valBattery">--%</span>
+        </div>
+        <div class="widget-body">
+          <div class="gauge" id="gaugeBattery" role="gauge" aria-label="Batterie"></div>
+          <div class="widget-detail">
+            <div class="detail-row"><span class="detail-label">État</span><span class="detail-value" id="detBatteryState">--</span></div>
+            <div class="detail-row"><span class="detail-label">Autonomie</span><span class="detail-value" id="detBatteryTime">--</span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- GPU -->
+      <article class="widget widget-gpu hidden" id="widgetGpu">
+        <div class="widget-head">
+          <span class="widget-title">Carte graphique (GPU)</span>
+          <span class="widget-value" id="valGpu">--</span>
+        </div>
+        <div class="widget-body">
+          <div class="widget-detail">
+            <div class="detail-row"><span class="detail-label">Modèle</span><span class="detail-value" id="detGpuModel">--</span></div>
+            <div class="detail-row"><span class="detail-label">VRAM</span><span class="detail-value" id="detGpuVram">--</span></div>
+            <div class="detail-row"><span class="detail-label">Température CPU</span><span class="detail-value" id="detCpuTemp">-- °C</span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Infos système -->
+      <article class="widget widget-info">
+        <div class="widget-head">
+          <span class="widget-title">Système</span>
+          <span class="widget-value" id="valOs">--</span>
+        </div>
+        <div class="widget-body">
+          <div class="widget-detail">
+            <div class="detail-row"><span class="detail-label">OS</span><span class="detail-value" id="detOs">--</span></div>
+            <div class="detail-row"><span class="detail-label">Architecture</span><span class="detail-value" id="detArch">--</span></div>
+            <div class="detail-row"><span class="detail-label">Utilisateur</span><span class="detail-value" id="detUser">--</span></div>
+            <div class="detail-row"><span class="detail-label">Nom d'hôte</span><span class="detail-value" id="detHostname">--</span></div>
+            <div class="detail-row"><span class="detail-label">Uptime</span><span class="detail-value" id="detUptime">--</span></div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <footer class="shell-footer">
+      <div class="footer-left">Performance Widgets v1.0.0 · notJaizu</div>
+      <div class="footer-right">Dernière mise à jour : <span id="lastUpdate">--</span></div>
+    </footer>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
